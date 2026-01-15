@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'object_detection_node = fyp_wamv_project.object_detection:main'
         ],
     },
 )
