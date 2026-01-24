@@ -213,6 +213,7 @@ def payload_bridges(world_name, model_name, link_name, sensor_name, sensor_type)
             camera_info(world_name, model_name, link_name, sensor_name)
         ]
     
+    # Depth camera bridges
     elif sensor_type == sdf.Sensortype.DEPTH_CAMERA:
         bridges = [
             depth_image(world_name, model_name, link_name, sensor_name),
