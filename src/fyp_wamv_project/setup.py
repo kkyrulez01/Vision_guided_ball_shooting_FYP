@@ -24,7 +24,9 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'object_detection_node = fyp_wamv_project.object_detection:main'
+            'binocular_vision = fyp_wamv_project.binocular_vision_node:main',
+            'HSV_filter = fyp_wamv_project.HSV_filter:main',
+            'depth_map = fyp_wamv_project.depth_map:main',
         ],
     },
 )
