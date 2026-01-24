@@ -153,7 +153,7 @@
         </material>
       </visual>
 
-      <sensor type="camera" name="${name}_sensor">
+      <sensor type="rgbd" name="${name}_sensor">
         <update_rate>30.0</update_rate>
 	<xacro:if value="${visualize}">
 	  <visualize>true</visualize>
@@ -178,6 +178,14 @@
             <stddev>0.007</stddev>
           </noise>
         </camera>
+
+        <!-- Add depth camera plugin -->
+        <plugin name="depth_camera_plugin" filename="libgazebo_ros_depth_camera.so">
+          <camera_name>${name}_camera</camera_name>
+          <frame_name>${namespace}/${name}_link</frame_name>
+          <min_depth>0.1</min_depth>
+          <max_depth>100</max_depth>
+        </plugin>
         </sensor>
     </gazebo>
   </xacro:macro>
