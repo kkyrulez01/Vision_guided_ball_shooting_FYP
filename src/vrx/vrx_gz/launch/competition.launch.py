@@ -45,7 +45,8 @@ def launch(context, *args, **kwargs):
         with open(config_file, 'r') as stream:
             models = Model.FromConfig(stream)
     else:
-      m = Model(robot_name, model_type, [-532, 162, 0, 0, 0, 1])
+      # default_position = [-532, 162, 0, 0, 0, 1]
+      m = Model(robot_name, model_type, [-481.38, 193.54, 0, 0, 0, 1]) # This spawns the WAM-V right infront of the first placard
       if robot_urdf and robot_urdf != '':
           m.set_urdf(robot_urdf)
       models.append(m)
