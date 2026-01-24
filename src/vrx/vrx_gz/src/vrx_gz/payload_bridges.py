@@ -212,6 +212,13 @@ def payload_bridges(world_name, model_name, link_name, sensor_name, sensor_type)
             image(world_name, model_name, link_name, sensor_name),
             camera_info(world_name, model_name, link_name, sensor_name)
         ]
+    
+    elif sensor_type == sdf.Sensortype.DEPTH_CAMERA:
+        bridges = [
+            depth_image(world_name, model_name, link_name, sensor_name),
+            camera_info(world_name, model_name, link_name, sensor_name)
+        ]
+        
     elif sensor_type == sdf.Sensortype.IMU:
         bridges = [
             imu(world_name, model_name, link_name, sensor_name)
