@@ -6,6 +6,8 @@ import cv2
 import numpy as np
 import message_filters
 
+from fyp_wamv_project.depth_map import DepthMap
+
 class Dual_ImageSubscriber(Node):
     def __init__(self):
         super().__init__('image_subscriber')
@@ -26,8 +28,17 @@ class Dual_ImageSubscriber(Node):
         self.left_camera_image = self.bridge.imgmsg_to_cv2(left_image_msg, desired_encoding='bgr8')
         self.right_camera_image = self.bridge.imgmsg_to_cv2(right_image_msg, desired_encoding='bgr8')
         self.get_logger().info('Received images from both cameras')
+
+        # Apply depth map computation
+        depth_map = DepthMap(self.left_camera_image, self.right_camera_image)
+        disparity = depth_map.compute_depth_mapBM()
+        # disparity = depth_map.compute_depth_mapSGBM() # Uncomment to use SGBM instead of BM
+        disparity_vis = disparity.astype(np.float32) / 16.0
+        norm_disparity = cv2.normalize(disparity_vis, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+
         cv2.imshow("Left_camera_feed", self.left_camera_image)
         cv2.imshow("Right_camera_feed", self.right_camera_image)
+        cv2.imshow("Depth_map", norm_disparity)
         cv2.waitKey(1)
 
 def main(args=None):
