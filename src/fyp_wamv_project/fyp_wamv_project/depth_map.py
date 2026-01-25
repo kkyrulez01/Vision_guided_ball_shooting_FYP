@@ -8,17 +8,18 @@ class DepthMap:
         self.right_frame = cv2.cvtColor(right_frame, cv2.COLOR_BGR2GRAY)
     
     def compute_depth_mapBM(self):
-        numDisparities_factor = 12 # Adjust this
+        numDisparities_factor = 8 # Adjust this
         blockSize = 5 # Must be odd and more than 3 (Default is 21)
         stereo = cv2.StereoBM_create(numDisparities= 16 * numDisparities_factor, blockSize=blockSize)
-        disparity = stereo.compute(self.left_frame, self.right_frame)
-        plt.imshow(disparity, 'gray')
-        plt.show()
+        disparity_BM = stereo.compute(self.left_frame, self.right_frame)
+        # plt.imshow(disparity, 'gray')
+        # plt.show()
+        return disparity_BM
 
     def compute_depth_mapSGBM(self):
         stereo_sgbm = cv2.StereoSGBM_create(
             minDisparity=16, # Minimum disparity value
-            numDisparities=16 * 12, # Max disparity - min disparity, must be multiple of 16
+            numDisparities=16 * 10, # Max disparity - min disparity, must be multiple of 16
             blockSize=5, # Must be an odd number >=1, Usually between 3-11
             P1= 8 * 3 * 5**2, # Controls disparity smoothness, penalty when disparity difference is 1
             P2= 32 * 3 * 5**2, # Controls smoothness, penalty when disparity difference > 1. Rule of thumb: P2 > P1
