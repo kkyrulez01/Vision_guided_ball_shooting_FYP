@@ -11,7 +11,7 @@ class DepthMap:
         numDisparities_factor = 8 # Adjust this
         blockSize = 5 # Must be odd and more than 3 (Default is 21)
         stereo = cv2.StereoBM_create(numDisparities= 16 * numDisparities_factor, blockSize=blockSize)
-        disparity_BM = stereo.compute(self.left_frame, self.right_frame)
+        disparity_BM = stereo.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
         # plt.imshow(disparity, 'gray')
         # plt.show()
         return disparity_BM
@@ -31,7 +31,7 @@ class DepthMap:
         )
 
         # Compute disparity map
-        disparity_sgbm = stereo_sgbm.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0
+        disparity_sgbm = stereo_sgbm.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
         return disparity_sgbm
 
     def plot_images(self):
