@@ -15,7 +15,7 @@ def template_matching(frame, templates: list):
         Dictionary of template locations.
     """
     # Dictionary to store coordinates of matched templates
-    template_locations = {}
+    templates_locations = {}
     # Templates will contain path of all template images
     for template in templates:
         template_img = cv2.imread(template)
