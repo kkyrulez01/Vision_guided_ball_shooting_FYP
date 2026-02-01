@@ -6,9 +6,9 @@ import cv2
 import numpy as np
 import message_filters
 
-from fyp_wamv_project.depth_map import DepthMap
+from fyp_wamv_project.binocular_vision_engine import StereoProcessor
 
-class Dual_ImageSubscriber(Node):
+class BinocularVision(Node):
     def __init__(self):
         super().__init__('image_subscriber')
         self.bridge = CvBridge()
@@ -29,26 +29,31 @@ class Dual_ImageSubscriber(Node):
         self.right_camera_image = self.bridge.imgmsg_to_cv2(right_image_msg, desired_encoding='bgr8')
         self.get_logger().info('Received images from both cameras')
 
-        # Apply depth map computation
-        depth_map = DepthMap(self.left_camera_image, self.right_camera_image)
-        disparity = depth_map.compute_depth_mapBM()
-        # disparity = depth_map.compute_depth_mapSGBM() # Uncomment to use SGBM instead of BM
-        disparity_vis = disparity.astype(np.float32) / 16.0
-        norm_disparity = cv2.normalize(disparity_vis, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        # Template matching
+        templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/filtered_big_target_template.png',
+                     '/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/filtered_small_target_template.png']
 
-        cv2.imshow("Left_camera_feed", self.left_camera_image)
-        cv2.imshow("Right_camera_feed", self.right_camera_image)
-        cv2.imshow("Depth_map", norm_disparity)
+        # Focal length and baseline in meters
+        baseline = 0.2 # in meters
+        
+        stereoProcessor = StereoProcessor(self.left_camera_image, self.right_camera_image, baseline, templates)
+        disparity, left_frame_matched = stereoProcessor.process_frames()
+
+        # Display the frames
+        cv2.imshow("Left_camera_feed", left_frame_matched)
+        # cv2.imshow("Right_camera_feed", right_frame_matched)
+        # cv2.imshow("Depth_map", disparity)
+        # cv2.imshow("Filtered Left frame", filtered_left_frame)
         cv2.waitKey(1)
 
 def main(args=None):
     rclpy.init(args=args)
-    dual_cameras_subscriber = Dual_ImageSubscriber()
-    rclpy.spin(dual_cameras_subscriber)
+    binocular_vision = BinocularVision()
+    rclpy.spin(binocular_vision)
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    dual_cameras_subscriber.destroy_node()
+    binocular_vision.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
