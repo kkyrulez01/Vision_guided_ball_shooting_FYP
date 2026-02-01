@@ -6,15 +6,40 @@ from fyp_wamv_project.HSV_filter import add_HSV_filter
 def detect_shape(frame):
     gray_frame = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY) # Convert to grayscale first
 
+    # # Trackbars to adjust Canny edge detection minVal, maxVal
+    # cv2.namedWindow('Parameters')
+    # cv2.createTrackbar('minVal', 'Parameters', 0, 500, lambda x: None)
+    # cv2.createTrackbar('maxVal', 'Parameters', 0, 500, lambda x: None)
+
+    # # Trackbar to adjust contour area threshold
+    # cv2.createTrackbar('Area', 'Parameters', 0, 1000, lambda x: None)
+
     # Use Canny edge detection, returns a binary image with thin edges
+    # minVal = cv2.getTrackbarPos('minVal', 'Parameters')
+    # maxVal = cv2.getTrackbarPos('maxVal', 'Parameters')
     edges = cv2.Canny(gray_frame, 50, 150) # Input image, minVal, maxVal
 
-    # Plot image
-    plt.subplot(1,2,1)
-    plt.imshow(frame, cmap='gray') # Show original image
-    plt.subplot(1,2,2)
-    plt.imshow(edges, cmap='gray') # Show edges detected
+    # Get contours
+    contours, hierachy = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, 
+                                          cv2.CHAIN_APPROX_SIMPLE) # Source image, contour retrieval mode, contour approximation method
 
+    # Only draw contours that are large enough (avoid noise)
+    contours_frame = frame.copy()
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        # areaThreshold = cv2.getTrackbarPos('Area', 'Parameters')
+        if area > 1000:
+            cv2.drawContours(contours_frame, cnt, -1, (0,255,0), 3) # -1 to draw all contours, color, thickness
+
+
+
+    # Plot image
+    plt.subplot(1,3,1)
+    plt.imshow(frame, cmap='gray') # Show original image
+    plt.subplot(1,3,2)
+    plt.imshow(edges, cmap='gray') # Show edges detected
+    plt.subplot(1,3,3)
+    plt.imshow(contours_frame)
     plt.show()
 
 def main():
