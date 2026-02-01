@@ -3,7 +3,7 @@ import numpy as np
 
 def add_HSV_filter(frame, lower, upper):
     # Convert BGR to HSV
-    frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    frame_hsv = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2HSV) # Copy the frame then perform color space conversion
 
     # Create a mask using defined bounds
     mask = cv2.inRange(frame_hsv, lower, upper)
@@ -11,12 +11,13 @@ def add_HSV_filter(frame, lower, upper):
     # Apply the mask to get the filtered image
     filtered_frame_HSV = cv2.bitwise_and(frame, frame, mask=mask)
     filtered_frame_BGR = cv2.cvtColor(filtered_frame_HSV, cv2.COLOR_HSV2BGR)
-    
-    # Display the results
+    cv2.normalize(filtered_frame_BGR, filtered_frame_BGR, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX) # Normalize for better visualization
+
+    # # Display the results
     # cv2.imshow("Original frame", frame)
     # cv2.imshow("HSV frame", frame_hsv)
     # cv2.imshow("Mask", mask)
-    # cv2.imshow("Filtered frame", filtered_frame)
+    # cv2.imshow("Filtered frame", filtered_frame_BGR)
     # cv2.waitKey(0)
 
     return filtered_frame_BGR
