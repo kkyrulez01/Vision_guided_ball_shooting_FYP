@@ -27,6 +27,7 @@ setup(
             'binocular_vision = fyp_wamv_project.binocular_vision_node:main',
             'HSV_filter = fyp_wamv_project.HSV_filter:main',
             'depth_map = fyp_wamv_project.depth_map:main',
+            'shape_detection = fyp_wamv_project.shape_detection:main',
         ],
     },
 )
