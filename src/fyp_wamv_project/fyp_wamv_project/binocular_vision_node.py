@@ -7,13 +7,15 @@ import numpy as np
 import message_filters
 
 from fyp_wamv_project.binocular_vision_engine import StereoProcessor
+from fyp_wamv_project.shape_detection import detect_shape
+from fyp_wamv_project.HSV_filter import add_HSV_filter
 
 class BinocularVision(Node):
     def __init__(self):
         super().__init__('image_subscriber')
         self.bridge = CvBridge()
 
-        # Creat subscribers for left and right camera
+        # Create subscribers for left and right camera
         self.left_image_sub = message_filters.Subscriber(self, Image, '/wamv/sensors/cameras/front_left_camera_sensor/image_raw',)
         self.right_image_sub = message_filters.Subscriber(self, Image, '/wamv/sensors/cameras/front_right_camera_sensor/image_raw',)
 
@@ -36,15 +38,17 @@ class BinocularVision(Node):
         # Focal length and baseline in meters
         baseline = 0.2 # in meters
         
-        stereoProcessor = StereoProcessor(self.left_camera_image, self.right_camera_image, baseline, templates)
-        disparity, left_frame_matched = stereoProcessor.process_frames()
+        stereoProcessor = StereoProcessor(self.left_camera_image, self.right_camera_image, baseline)
+        disparity, filtered_left_frame = stereoProcessor.process_frames()
 
-        # Display the frames
-        cv2.imshow("Left_camera_feed", left_frame_matched)
-        # cv2.imshow("Right_camera_feed", right_frame_matched)
+        # # Display the processed_frame
+        # cv2.imshow("Left_camera_feed", filtered_left_frame)
+        # # cv2.imshow("Right_camera_feed", right_frame_matched)
         # cv2.imshow("Depth_map", disparity)
-        # cv2.imshow("Filtered Left frame", filtered_left_frame)
+        cv2.imshow("Filtered Left frame", filtered_left_frame)
         cv2.waitKey(1)
+        
+
 
 def main(args=None):
     rclpy.init(args=args)
