@@ -25,22 +25,30 @@ def detect_shape(frame):
 
     # Only draw contours that are large enough (avoid noise)
     contours_frame = frame.copy()
+    # Store the centre coordinates and top left of the shape
+    shapes_top_left = []
     for cnt in contours:
         area = cv2.contourArea(cnt)
         # areaThreshold = cv2.getTrackbarPos('Area', 'Parameters')
-        if area > 1000:
+        if area > 500:
             cv2.drawContours(contours_frame, cnt, -1, (0,255,0), 3) # -1 to draw all contours, color, thickness
+            peri = cv2.arcLength(cnt, True) # True indicates that the contour is closed
+            approx = cv2.approxPolyDP(cnt, 0.02 * peri, True) 
+            x, y, w, h = cv2.boundingRect(approx)
+            cv2.rectangle(contours_frame, (x,y), (x+w, y+h), (255,0,255), 2)
+            shapes_top_left.append((x,y))
 
 
+    return contours_frame,shapes_top_left
 
-    # Plot image
-    plt.subplot(1,3,1)
-    plt.imshow(frame, cmap='gray') # Show original image
-    plt.subplot(1,3,2)
-    plt.imshow(edges, cmap='gray') # Show edges detected
-    plt.subplot(1,3,3)
-    plt.imshow(contours_frame)
-    plt.show()
+    # # Plot image
+    # plt.subplot(1,3,1)
+    # plt.imshow(frame, cmap='gray') # Show original image
+    # plt.subplot(1,3,2)
+    # plt.imshow(edges, cmap='gray') # Show edges detected
+    # plt.subplot(1,3,3)
+    # plt.imshow(contours_frame)
+    # plt.show()
 
 def main():
     frame = cv2.imread('/home/kky/Pictures/left_camera_feed.png')
