@@ -17,16 +17,22 @@ def multi_scale_template_matching(frame, templates: list):
     """
     # Dictionary to store coordinates of matched templates
     templates_locations = {}
+
+    # Only search the top 2/3 of the image
+    y_start, x_start = 0, 0
+    y_end = int((2/3) * frame.shape[0])
+    x_end = frame.shape[1]
+    search_area = frame[y_start:y_end, x_start:x_end]
+
     # Templates will contain path of all template images
     for template in templates:
         template_img = cv2.imread(template)
         scaled_template_list = scale_template(template_img) # List of scaled template images
         template_name = Path(template).stem
-
         rects = []
         confidences = []
         for scaled_template in scaled_template_list:
-            result = cv2.matchTemplate(frame, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
+            result = cv2.matchTemplate(search_area, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
             threshold = 0.75 # Adjust this
             loc = np.where(result >= threshold)
             h,w = scaled_template.shape[:-1]
@@ -41,7 +47,7 @@ def multi_scale_template_matching(frame, templates: list):
                 x,y,w,h = rects[i]
                 cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 2)
                 cv2.putText(frame, f'{template_name}', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-                
+
             # Get template name from path
             # template_name = Path(template).stem
             # templates_locations[template_name] = (top_left, bottom_right)
@@ -73,7 +79,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.25, 2, 0.25).tolist() # List of scaling ratios
+    scales = np.arange(0.2, 2, 0.2).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
