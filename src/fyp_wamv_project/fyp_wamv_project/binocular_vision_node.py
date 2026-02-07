@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import message_filters
 
-from fyp_wamv_project.binocular_vision_engine import StereoProcessor
+from fyp_wamv_project.binocular_vision_engine import BaseDetector, TemplateMatcher, ColorEdgeDetector
 from fyp_wamv_project.shape_detection import detect_shape
 from fyp_wamv_project.HSV_filter import add_HSV_filter
 
@@ -32,20 +32,25 @@ class BinocularVision(Node):
         self.get_logger().info('Received images from both cameras')
 
         # Template matching
-        templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/filtered_big_target_template.png',
-                     '/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/filtered_small_target_template.png']
+        templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/big_target_template.png',
+                     '/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png']
 
         # Focal length and baseline in meters
         baseline = 0.2 # in meters
         
-        stereoProcessor = StereoProcessor(self.left_camera_image, self.right_camera_image, baseline)
-        disparity, filtered_left_frame = stereoProcessor.process_frames()
-
+        processor1 = TemplateMatcher(self.left_camera_image, self.right_camera_image, templates)
+        processor2 = ColorEdgeDetector(self.left_camera_image, self.right_camera_image, baseline)
+        
+        # Choose approach
+        # disparity, frame_1 = processor1.process_frames()
+        disparity, filtered_frame_2 = processor2.process_frames()
         # # Display the processed_frame
         # cv2.imshow("Left_camera_feed", filtered_left_frame)
         # # cv2.imshow("Right_camera_feed", right_frame_matched)
         # cv2.imshow("Depth_map", disparity)
-        cv2.imshow("Filtered Left frame", filtered_left_frame)
+        # cv2.imshow("Filtered Left frame", filtered_left_frame)
+        # cv2.imshow("Template matching", frame_1)
+        cv2.imshow("Color Edge detection", filtered_frame_2)
         cv2.waitKey(1)
         
 
