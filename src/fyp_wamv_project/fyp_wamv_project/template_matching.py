@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from pathlib import Path
 
 def multi_scale_template_matching(frame, templates: list):
@@ -29,7 +30,8 @@ def multi_scale_template_matching(frame, templates: list):
         template_img = cv2.imread(template)
         scaled_template_list = scale_template(template_img) # List of scaled template images
         template_name = Path(template).stem
-        rects = []
+        rects = [] # Contains x,y,w,h of bounding boxes
+        rects_indices = []
         confidences = []
         for scaled_template in scaled_template_list:
             result = cv2.matchTemplate(search_area, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
@@ -45,14 +47,14 @@ def multi_scale_template_matching(frame, templates: list):
             
             for i in indices:
                 x,y,w,h = rects[i]
-                cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 2)
-                cv2.putText(frame, f'{template_name}', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-
+                cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 5)
+                cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                rects_indices.append(rects[i])
             # Get template name from path
             # template_name = Path(template).stem
             # templates_locations[template_name] = (top_left, bottom_right)
 
-    return frame, templates_locations
+    return frame, rects_indices, scaled_template_list
 
 def get_template_centre(templates_locations: dict):
     # Dictionary to store centre coordinates of matched templates
@@ -79,7 +81,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.2, 2, 0.2).tolist() # List of scaling ratios
+    scales = np.arange(0.25, 3.25, 0.25).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
@@ -112,12 +114,33 @@ def apply_NMS(boxes, scores, threshold_conf=0.75, threshold_iou=0.5):
 
     return indices
 
+def stamp_template(ax, template, x, y, scale, alpha=0.8):
+    """
+    Stamps the template onto the axes at a specific scale.
+
+    Arguments:
+        ax: The main Axis (where the image is plotted)
+        template: The original template image array
+        x, y: The top-left coordinates of the match
+        scale: The scale factor
+    """
+
+    imagebox = OffsetImage(template, zoom=scale, alpha=alpha)
+    h, w = template.shape[:2]
+    cx = x + (w * scale) / 2
+    cy = y + (h * scale) / 2
+
+    ab = AnnotationBbox(imagebox, (cx, cy), frameon=False)
+    ax.add_artist(ab)
+
+
 def main():
     frame = cv2.imread('/home/kky/Pictures/left_camera_feed.png')
 
     # Templates
-    templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png',
-                '/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/big_target_template.png']
+    templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png',]
+    template_img = cv2.imread(templates[0])
+                
 
     # # Test scale_template
     # template_1 = cv2.imread(templates[0])
@@ -126,11 +149,13 @@ def main():
     # # Plot scaled template images
     # nrows = len(scaled_template_list) // 3 + 1
     # ncols = 3
-    # fig, ax = plt.subplots(nrows,ncols, figsize=(12,10))
+    # fig, ax = plt.subplots(nrows,ncols, figsize=(15,8))
     # ax = ax.flatten()
     
     # for i in range(len(scaled_template_list)):
     #     ax[i].imshow(scaled_template_list[i])
+    #     ax[i].set_xlim(0,500)
+    #     ax[i].set_ylim(500,0)
 
     # for j in range(len(scaled_template_list), len(ax)):
     #     ax[j].axis('off')
@@ -138,9 +163,31 @@ def main():
     # plt.show()
 
     # Test multi_scale_template_matching
-    frame, templates_locations = multi_scale_template_matching(frame, templates)
-    plt.imshow(frame)
+    frame, rects_indices, scaled_template_list = multi_scale_template_matching(frame, templates)
+
+    # Copy this frame to stack scaled templates on the centre of bounding boxes
+    frame_stacking = frame.copy()
+
+    fig, ax = plt.subplots(nrows=1,ncols=2,figsize=(12,8))
+    ax[0].imshow(frame) # Original image
+    ax[1].imshow(frame) # Stacked templates image
+    for i in range(len(rects_indices)):
+        x,y,w,h = rects_indices[i]
+        for j in range(len(scaled_template_list)):
+            left, right, bottom, top = x, x + scaled_template_list[j].shape[0], y, y + scaled_template_list[j].shape[1] 
+            ax[1].imshow(scaled_template_list[0], extent=[left,right,bottom,top], alpha=0.1)
+
+    ax[0].set_xlim(0,900)
+    ax[0].set_ylim(720,0)
+    ax[1].set_xlim(0,900)
+    ax[1].set_ylim(720,0)
+
+
+    plt.axis('off')
     plt.show()
+
+
+    
 if "__name__" == "__main__":
     main()
 
