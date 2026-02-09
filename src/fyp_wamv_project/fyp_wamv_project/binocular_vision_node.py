@@ -42,15 +42,16 @@ class BinocularVision(Node):
         processor2 = ColorEdgeDetector(self.left_camera_image, self.right_camera_image, baseline)
         
         # Choose approach
-        # disparity, frame_1 = processor1.process_frames()
-        disparity, filtered_frame_2 = processor2.process_frames()
+        disparity_1, frame_1 = processor1.process_frames()
+        # disparity_2, filtered_frame_2 = processor2.process_frames()
+
         # # Display the processed_frame
         # cv2.imshow("Left_camera_feed", filtered_left_frame)
         # # cv2.imshow("Right_camera_feed", right_frame_matched)
         # cv2.imshow("Depth_map", disparity)
         # cv2.imshow("Filtered Left frame", filtered_left_frame)
-        # cv2.imshow("Template matching", frame_1)
-        cv2.imshow("Color Edge detection", filtered_frame_2)
+        cv2.imshow("Template matching", frame_1)
+        # cv2.imshow("Color Edge detection", filtered_frame_2)
         cv2.waitKey(1)
         
 

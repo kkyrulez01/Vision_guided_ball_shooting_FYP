@@ -2,7 +2,7 @@
 import cv2 
 import numpy as np
 
-from fyp_wamv_project.triangulation import calculate_focal_length, triangulate_points, back_projection
+from fyp_wamv_project.triangulation import calculate_focal_length, triangulation, back_projection
 from fyp_wamv_project.depth_map import DepthMap
 from fyp_wamv_project.template_matching import *
 from fyp_wamv_project.HSV_filter import add_HSV_filter
@@ -60,11 +60,10 @@ class ColorEdgeDetector(BaseDetector):
         # Triangulate top left of detected shapes to get Z values
         for top_left in shapes_top_left:
             u, v = top_left
-            Z = triangulate_points(u, v, disparity, filtered_frame_2, self.baseline, focal_length)
-            # # Using Z values, calculate X and Y
-            # X,Y = back_projection(Z, u, v, 640, 360, focal_length, focal_length)
+            Z = triangulation(u, v, disparity, self.baseline, focal_length)
+            # Using Z values, calculate X and Y and draw on frame
+            filtered_frame_2 = back_projection(Z, u, v, 640, 360, focal_length, focal_length, filtered_frame_2)
 
-            # print(X,Y)
         # Return disparity map and matched frames
         return disparity, filtered_frame_2
 
