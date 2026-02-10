@@ -37,7 +37,7 @@ class DepthMap:
 
     def plot_images(self):
         # Display the disparity map
-        disparity_sgbm = self.compute_depth_mapSGBM()
+        disparity_sgbm = self.compute_depth_mapBM()
         plt.figure()
         plt.subplot(1, 2, 1)
         plt.imshow(self.left_frame, 'gray')
