@@ -47,7 +47,7 @@ def multi_scale_template_matching(frame, templates: list):
             
             for i in indices:
                 x,y,w,h = rects[i]
-                cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 5)
+                cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 4)
                 cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
                 rects_indices.append(rects[i])
             # Get template name from path
