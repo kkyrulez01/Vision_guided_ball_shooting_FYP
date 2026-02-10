@@ -136,6 +136,6 @@
         <name>${name}</name>
       </plugin>
     </gazebo>
-
+    
   </xacro:macro>
 </robot>
