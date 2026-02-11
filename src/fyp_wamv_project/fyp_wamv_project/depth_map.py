@@ -47,8 +47,8 @@ class DepthMap:
 
 # Example usage:
 def main():
-    left_frame = cv2.imread('/home/kky/Pictures/left_camera_feed.png')
-    right_frame = cv2.imread('/home/kky/Pictures/right_camera_feed.png')
+    left_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
+    right_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
     depth_map = DepthMap(left_frame,right_frame)
     
     depth_map.compute_depth_mapBM()

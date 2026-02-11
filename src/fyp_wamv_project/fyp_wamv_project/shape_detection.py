@@ -51,7 +51,7 @@ def detect_shape(frame):
     # plt.show()
 
 def main():
-    frame = cv2.imread('/home/kky/Pictures/left_camera_feed.png')
+    frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
     lower = np.array([0, 0, 0]) 
     upper = np.array([180, 255, 30])
     frame_HSV = add_HSV_filter(frame, lower,upper)

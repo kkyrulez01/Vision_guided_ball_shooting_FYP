@@ -135,10 +135,10 @@ def stamp_template(ax, template, x, y, scale, alpha=0.8):
 
 
 def main():
-    frame = cv2.imread('/home/kky/Pictures/left_camera_feed.png')
+    frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
 
     # Templates
-    templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png',]
+    templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png',]
     template_img = cv2.imread(templates[0])
                 
 
