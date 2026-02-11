@@ -24,7 +24,7 @@ def add_HSV_filter(frame, lower, upper):
     
 def main():
     # Load example image
-    image = cv2.imread('/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png')
+    image = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png')
     # Define lower and upper bound for black color
     lower = np.array([0, 0, 0]) 
     upper = np.array([180, 255, 30])
