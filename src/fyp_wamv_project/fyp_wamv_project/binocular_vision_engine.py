@@ -25,7 +25,7 @@ class TemplateMatcher(BaseDetector):
 
         # Multi scale template matching approach
         frame_1 = self.left_frame.copy()
-        frame_1, templates_locations = multi_scale_template_matching(frame_1, self.templates)
+        frame_1, rects_indices, scaled_template_list = multi_scale_template_matching(frame_1, self.templates)
 
         return disparity, frame_1
 
