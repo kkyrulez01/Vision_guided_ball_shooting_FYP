@@ -205,8 +205,22 @@ def set_acoustic_pinger():
         ros_type='geometry_msgs/msg/Vector3',
         direction=BridgeDirection.ROS_TO_GZ)
 
+# Bridge the World Pose Vector that contains everything from gz to Ros2
+def world_dynamic_pose(world_name):
+    return Bridge(
+        gz_topic=f'/world/{world_name}/dynamic_pose/info',
+        ros_topic=f'/world/{world_name}/dynamic_pose/info',
+        gz_type='gz.msgs.Pose_V',
+        ros_type='tf2_msgs/msg/TFMessage',
+        direction=BridgeDirection.GZ_TO_ROS
+    )
+
 def payload_bridges(world_name, model_name, link_name, sensor_name, sensor_type):
     bridges = []
+
+    # For the World Pose Vector
+    # bridges = [world_dynamic_pose(world_name)]
+
     if sensor_type == sdf.Sensortype.CAMERA:
         bridges = [
             image(world_name, model_name, link_name, sensor_name),
