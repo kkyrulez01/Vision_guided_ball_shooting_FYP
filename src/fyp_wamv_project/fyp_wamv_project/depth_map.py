@@ -10,15 +10,25 @@ class DepthMap:
     def compute_depth_mapBM(self):
         numDisparities_factor = 8 # Adjust this
         blockSize = 5 # Must be odd and more than 3 (Default is 21)
-        stereo = cv2.StereoBM_create(numDisparities= 16 * numDisparities_factor, blockSize=blockSize)
-        stereo.setUniquenessRatio(5)
-        disparity_BM = stereo.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
-        # plt.imshow(disparity, 'gray')
-        # plt.show()
-        return disparity_BM
+
+        # Create left and right matchers using StereoBM algorithm
+        left_matcher = cv2.StereoBM_create(numDisparities= 16 * numDisparities_factor, blockSize=blockSize)
+        right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+
+        # Create the WLS filter
+        wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=left_matcher)
+        wls_filter.setLambda(8000) # Smoothing strength
+        wls_filter.setSigmaColor(1.5) # How much to respect RGB edges
+
+        # Compute disparity maps
+        disp_l = left_matcher.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
+        disp_r = right_matcher.compute(self.right_frame, self.left_frame).astype(np.float32) / 16.0
+        filtered_disp_BM = wls_filter.filter(disp_l, self.left_frame, disparity_map_right=disp_r)
+        return filtered_disp_BM
 
     def compute_depth_mapSGBM(self):
-        stereo_sgbm = cv2.StereoSGBM_create(
+        # Create left and right matchers using StereoSGBM algorithm
+        left_matcher = cv2.StereoSGBM_create(
             minDisparity=16, # Minimum disparity value
             numDisparities=16 * 10, # Max disparity - min disparity, must be multiple of 16
             blockSize=5, # Must be an odd number >=1, Usually between 3-11
@@ -30,14 +40,22 @@ class DepthMap:
             speckleRange=2,
             mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY,
         )
+        right_matcher = cv2.ximgproc.createRightMatcher(left_matcher)
+
+        # Create the WLS filter
+        wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=left_matcher)
+        wls_filter.setLambda(8000) # Smoothing strength
+        wls_filter.setSigmaColor(1.5) # How much to respect RGB edges
 
         # Compute disparity map
-        disparity_sgbm = stereo_sgbm.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
-        return disparity_sgbm
+        disp_l = left_matcher.compute(self.left_frame, self.right_frame).astype(np.float32) / 16.0 # Divide by 16 to get actual disparity values
+        disp_r = right_matcher.compute(self.right_frame, self.left_frame).astype(np.float32) / 16.0
+        filtered_disp_SGBM = wls_filter.filter(disp_l, self.left_frame, disparity_map_right=disp_r)
+        return filtered_disp_SGBM
 
     def plot_images(self):
         # Display the disparity map
-        disparity_sgbm = self.compute_depth_mapBM()
+        disparity_sgbm = self.compute_depth_mapSGBM()
         plt.figure()
         plt.subplot(1, 2, 1)
         plt.imshow(self.left_frame, 'gray')
@@ -49,11 +67,27 @@ class DepthMap:
 def main():
     left_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
     right_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
-    depth_map = DepthMap(left_frame,right_frame)
+    left_frame = cv2.cvtColor(left_frame, cv2.COLOR_BGR2GRAY)
+    right_frame = cv2.cvtColor(right_frame, cv2.COLOR_BGR2GRAY)
+    # depth_map = DepthMap(left_frame,right_frame)
     
-    depth_map.compute_depth_mapBM()
-    # depth_map.compute_depth_mapSGBM()
-    depth_map.plot_images()
+    # depth_map.compute_depth_mapBM()
+    # # depth_map.compute_depth_mapSGBM()
+    # depth_map.plot_images()
 
+    # Test WLS filter
+    left_matcher = cv2.StereoBM_create(numDisparities=16 * 8, blockSize=5)
+    right_matcher = cv2.ximgproc.createRightMatcher(left_matcher) # Required for WLS filter
+    # Create the WLS filter
+    wls_filter = cv2.ximgproc.createDisparityWLSFilter(matcher_left=left_matcher)
+    wls_filter.setLambda(8000) # Smoothing strength
+    wls_filter.setSigmaColor(1) # How much to respect RGB edges
+    # Compute disparity maps
+    disp_l = left_matcher.compute(left_frame, right_frame).astype(np.float32) / 16.0
+    disp_r = right_matcher.compute(right_frame, left_frame).astype(np.float32) / 16.0
+    filtered_disp = wls_filter.filter(disp_l, left_frame, disparity_map_right=disp_r)
+    plt.imshow(filtered_disp, 'gray')
+    plt.show()
+    
 if __name__ == "__main__":
     main()
