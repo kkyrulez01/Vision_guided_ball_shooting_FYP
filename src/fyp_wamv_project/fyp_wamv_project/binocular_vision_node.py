@@ -15,7 +15,7 @@ class BinocularVision(Node):
         super().__init__('binocular_vision')
         self.bridge = CvBridge()
 
-        # Create subscribers for left and right camera
+        # Create subscribers to left and right camera
         self.left_image_sub = message_filters.Subscriber(self, Image, '/wamv/sensors/cameras/front_left_camera_sensor/image_raw',)
         self.right_image_sub = message_filters.Subscriber(self, Image, '/wamv/sensors/cameras/front_right_camera_sensor/image_raw',)
 
@@ -24,6 +24,9 @@ class BinocularVision(Node):
                                                             queue_size=10,
                                                             slop=0.1)
         self.ts.registerCallback(self.image_callback)
+
+        # Create publisher
+        self.publisher = self.create_publisher(PointStamped, 'target_position', 10)
 
     def image_callback(self, left_image_msg, right_image_msg): 
         # Store the frames
