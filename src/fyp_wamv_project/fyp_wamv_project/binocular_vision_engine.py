@@ -50,16 +50,16 @@ class ColorEdgeDetector(BaseDetector):
         filtered_frame_2 = cv2.normalize(filtered_frame_2, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX) # Normalize for better visualization
 
         # Detect shapes in the filtered left frame and get their centre coordinates
-        filtered_frame_2, shapes_top_left = detect_shape(filtered_frame_2)
+        filtered_frame_2, shapes_centre = detect_shape(filtered_frame_2)
 
         # Calculate focal length in pixels
         image_width_px = self.left_frame.shape[1]
         HFOV_rad = 1.3962634 # From wamv_camera.xacro
         focal_length = calculate_focal_length(image_width_px , HFOV_rad) # in pixels
 
-        # Triangulate top left of detected shapes to get Z values
-        for top_left in shapes_top_left:
-            u, v = top_left
+        # Triangulate centre of detected shapes to get Z values
+        for centre in shapes_centre:
+            u, v = centre
             Z = triangulation(u, v, disparity, self.baseline, focal_length)
             # Using Z values, calculate X and Y and draw on frame
             filtered_frame_2 = back_projection(Z, u, v, 640, 360, focal_length, focal_length, filtered_frame_2)
