@@ -26,7 +26,7 @@ def detect_shape(frame):
     # Only draw contours that are large enough (avoid noise)
     contours_frame = frame.copy()
     # Store the centre coordinates and top left of the shape
-    shapes_top_left = []
+    shapes_centre = []
     for cnt in contours:
         area = cv2.contourArea(cnt)
         # areaThreshold = cv2.getTrackbarPos('Area', 'Parameters')
@@ -36,10 +36,10 @@ def detect_shape(frame):
             approx = cv2.approxPolyDP(cnt, 0.02 * peri, True) 
             x, y, w, h = cv2.boundingRect(approx)
             cv2.rectangle(contours_frame, (x,y), (x+w, y+h), (255,0,255), 2)
-            shapes_top_left.append((x,y))
+            shapes_centre.append((x+w//2, y+h//2)) # Append the centre of the shape
 
 
-    return contours_frame,shapes_top_left
+    return contours_frame,shapes_centre
 
     # # Plot image
     # plt.subplot(1,3,1)
@@ -56,7 +56,8 @@ def main():
     upper = np.array([180, 255, 30])
     frame_HSV = add_HSV_filter(frame, lower,upper)
 
-    detect_shape(frame_HSV)
+    contours_frame, shapes_centre = detect_shape(frame_HSV)
+    print(shapes_centre)
 
 if __name__=="__main__":
     main()
