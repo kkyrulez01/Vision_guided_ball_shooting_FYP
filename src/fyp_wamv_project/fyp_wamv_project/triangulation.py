@@ -43,13 +43,17 @@ def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame):
         X = ((u - c_x) * Z / f_x)
         Y = ((v- c_y) * Z / f_y)
 
-        # Draw a circle in the top left of bounding boxes
+        # Draw a circle in the centre of bounding boxes
         cv2.circle(frame, (u, v), 5, (255,0,0), -1)
-        # Label the Z value of center point
-        cv2.putText(frame, f"Z: {Z:.2f}m, X: {X:.2f}m, Y: {Y:.2f}m",
-                    (u + 10, v - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
+        # Label the Z,X,Y value of centre point
+        size, _ = cv2.getTextSize(f"Z: {Z:.2f}m,X: {X:.2f}m,Y: {Y:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
+        text_w, text_h = size
+        cv2.putText(frame, f"Z: {Z:.2f}m,X: {X:.2f}m,Y: {Y:.2f}m",
+                    (u - text_w // 2, v - text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0,255,0), 1)
         
     return frame
+
+
         
     
 
