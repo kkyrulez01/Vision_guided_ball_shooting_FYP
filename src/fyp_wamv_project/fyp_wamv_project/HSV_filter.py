@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 def add_HSV_filter(frame, lower, upper):
     # Convert BGR to HSV
@@ -24,13 +25,13 @@ def add_HSV_filter(frame, lower, upper):
     
 def main():
     # Load example image
-    image = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png')
+    image = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
     # Define lower and upper bound for black color
     lower = np.array([0, 0, 0]) 
     upper = np.array([180, 255, 30])
-    add_HSV_filter(image, lower, upper)
-
-    cv2.destroyAllWindows()
+    filtered_frame_BGR = add_HSV_filter(image, lower, upper)
+    plt.imshow(filtered_frame_BGR)
+    plt.show()
 
 if __name__ == '__main__':
     main()
