@@ -27,7 +27,7 @@ class BinocularVision(Node):
         self.ts.registerCallback(self.image_callback)
 
         # Create publisher
-        self.targets_publisher = self.create_publisher(PoseArray, 'target_positions', 10)
+        self.targets_publisher = self.create_publisher(PoseArray, 'target_positions', 10) # Publishing to "target_positions" topic
 
     def image_callback(self, left_image_msg, right_image_msg): 
         # Store the frames
@@ -58,15 +58,21 @@ class BinocularVision(Node):
         cv2.imshow("Color Edge detection", filtered_frame_2)
         cv2.waitKey(1)
 
-    def publish_targets(self, targets):
         msg = PoseArray()
         for target in targets:
-            p = Pose()
-            # Set position of target
-            p.position.x = target[0]
-            p.position.y = target[1]
-            p.position.z = target[2]
-            msg.poses.append(p)
+            
+            if target[0] is not None and target[1] is not None and target[2] is not None:
+                try:
+                    p = Pose()
+                    p.position.x = float(target[0])
+                    p.position.y = float(target[1])
+                    p.position.z = float(target[2])
+                    msg.poses.append(p)
+                except (TypeError, ValueError) as e:
+                    self.get_logger().error(f"Conversion failed: {e}")
+
+            else:
+                self.get_logger().info("No target detected, skipping publishing")
         
         # Publish the message
         self.targets_publisher.publish(msg)
