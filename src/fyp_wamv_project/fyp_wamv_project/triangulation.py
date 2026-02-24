@@ -33,13 +33,14 @@ def triangulation(u, v, disparity_map, baseline, focal_length):
 
     # Disparity map is a matrix, so to access a pixel at (u,v) we use disparity_map[v, u]
     disparity = disparity_map[v, u] # Dont need to divide by 16 since already done in depth map computation
-    Z = (f * B) / disparity # Depth of the point in meters
+    if disparity > 0:
+        Z = (f * B) / disparity # Depth of the point in meters
 
-    return Z
+        return Z
 
 def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame):
-    if Z > 0:
-        # Calculate X and Y using Z value
+    if Z is not None and Z > 0:
+    # Calculate X and Y using Z value
         X = ((u - c_x) * Z / f_x)
         Y = ((v- c_y) * Z / f_y)
 
@@ -50,10 +51,12 @@ def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame):
         text_w, text_h = size
         cv2.putText(frame, f"Z: {Z:.2f}m,X: {X:.2f}m,Y: {Y:.2f}m",
                     (u - text_w // 2, v - text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0,255,0), 1)
-        
-    return frame
 
+        return X, Y, Z, frame
 
+    else:
+        return None, None, None, frame
+    
         
     
 
