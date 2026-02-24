@@ -1,0 +1,16 @@
+wamv/controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    pitch_controller:
+      type: position_controllers/JointGroupPositionController
+      
+
+wamv/pitch_controller:
+  ros__parameters:
+    joints:
+      - wamv/ball_shooter_launcher_joint
+    interface_name: position
