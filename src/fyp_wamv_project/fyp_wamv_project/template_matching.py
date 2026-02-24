@@ -81,7 +81,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.25, 3.25, 0.25).tolist() # List of scaling ratios
+    scales = np.arange(0.1, 3, 0.2).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
