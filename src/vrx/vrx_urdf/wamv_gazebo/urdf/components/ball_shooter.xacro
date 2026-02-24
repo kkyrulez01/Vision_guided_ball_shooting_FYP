@@ -137,5 +137,30 @@
       </plugin>
     </gazebo>
     
+    <!-- ros2_control -->
+    <ros2_control name="GazeboSystem" type="system">
+      <hardware>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+
+      <joint name="wamv/ball_shooter_launcher_joint">
+        <command_interface name="position"/>
+          <param name="min">-1.57</param>
+          <param name="max">1.57</param>
+        <state_interface name="position"/>
+      </joint>
+
+    </ros2_control>
+
+    <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>$(find wamv_gazebo)/config/ball_launcher_controller.yaml</parameters>
+        <ros>
+          <namespace>/wamv</namespace>
+          <remapping>/robot_description:=/wamv/robot_description</remapping>
+        </ros>
+      </plugin>
+    </gazebo>
+
   </xacro:macro>
 </robot>
