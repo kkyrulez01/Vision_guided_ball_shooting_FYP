@@ -16,7 +16,9 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.actions import OpaqueFunction
+from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
+from launch.actions import TimerAction
 import os
 
 import vrx_gz.launch
@@ -59,6 +61,32 @@ def launch(context, *args, **kwargs):
 
     if (sim_mode == 'bridge' or sim_mode == 'full') and bridge_competition_topics:
         launch_processes.extend(vrx_gz.launch.competition_bridges(world_name_base, competition_mode))
+
+
+    # Add in spawners for ROS2 controllers
+    jsb_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster", "-c", "wamv/controller_manager",
+        "--ros-args", 
+        "-p", "robot_description_topic:=/wamv/robot_description"
+        ] # Force it to the right topic
+    )
+
+    pitch_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["pitch_controller", "-c", "wamv/controller_manager",
+        "--ros-args", 
+        "-p", "robot_description_topic:=/wamv/robot_description"] # Force it to the right topic,
+    )
+
+    launch_processes.append(
+        TimerAction(
+            period=10.0,
+            actions=[jsb_spawner, pitch_spawner],
+        )
+    )
 
     return launch_processes
 
