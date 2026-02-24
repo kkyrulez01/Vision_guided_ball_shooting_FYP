@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Pose, PoseArray
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
@@ -26,7 +27,7 @@ class BinocularVision(Node):
         self.ts.registerCallback(self.image_callback)
 
         # Create publisher
-        self.publisher = self.create_publisher(PointStamped, 'target_position', 10)
+        self.targets_publisher = self.create_publisher(PoseArray, 'target_positions', 10)
 
     def image_callback(self, left_image_msg, right_image_msg): 
         # Store the frames
@@ -35,8 +36,8 @@ class BinocularVision(Node):
         self.get_logger().info('Received images from both cameras')
 
         # Template matching
-        templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/big_target_template.png',
-                     '/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png']
+        templates = ['/home/kky/fyp_ws/src/fyp_wamv_project/fyp_wamv_project/templates/big_target_template.png',]
+                    
 
         # Focal length and baseline in meters
         baseline = 0.2 # in meters
@@ -46,7 +47,7 @@ class BinocularVision(Node):
         
         # Choose approach
         # disparity_1, frame_1 = processor1.process_frames()
-        disparity_2, filtered_frame_2 = processor2.process_frames()
+        disparity_2, filtered_frame_2, targets = processor2.process_frames()
 
         # # Display the processed_frame
         # cv2.imshow("Left_camera_feed", filtered_left_frame)
@@ -56,8 +57,19 @@ class BinocularVision(Node):
         # cv2.imshow("Template matching", frame_1)
         cv2.imshow("Color Edge detection", filtered_frame_2)
         cv2.waitKey(1)
-        
 
+    def publish_targets(self, targets):
+        msg = PoseArray()
+        for target in targets:
+            p = Pose()
+            # Set position of target
+            p.position.x = target[0]
+            p.position.y = target[1]
+            p.position.z = target[2]
+            msg.poses.append(p)
+        
+        # Publish the message
+        self.targets_publisher.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
