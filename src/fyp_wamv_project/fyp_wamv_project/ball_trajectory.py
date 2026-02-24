@@ -32,7 +32,6 @@ def calculate_required_pitch_angle(mean_x, mean_y, mean_z, initial_velocity, g=9
         default_ball_shooter_x = 0.3
         default_ball_shooter_y = 1.4
         default_ball_shooter_z = 0.54
-        default_ball_shooter_pitch = -15/180 * np.pi # in radians
 
         # Req x,y,z 
         req_x = mean_x - (default_ball_shooter_x - left_cam_x)
@@ -44,20 +43,22 @@ def calculate_required_pitch_angle(mean_x, mean_y, mean_z, initial_velocity, g=9
         # theta_2 = 0.5 * np.arcsin((g*req_z) / (2 * initial_velocity**2)) # Using range
 
         theta_1_deg = np.degrees(theta_1)
-        theta_2_deg = np.degrees(theta_2)
+        # theta_2_deg = np.degrees(theta_2)
 
-        return theta_1_deg, theta_2_deg
+        return theta_1
         
 def main():
     ball_mass = 0.04
     max_step_size = 0.004
     shot_force = 100
     initial_velocity = calculate_initial_velocity(shot_force, max_step_size, ball_mass)
-    print(initial_velocity)
+    print(f"Initial velocity: {initial_velocity}")
     max_range = get_max_range(initial_velocity, 9.81, 45/180 * np.pi)
     max_height = get_max_height(initial_velocity, 9.81, 45/180 * np.pi)
-    print(max_range, max_height)
-    theta_1_deg, theta_2_deg = calculate_required_pitch_angle((0.1-0.12), (1.5+0.34), (4.6-0.75), initial_velocity, g=9.81)
-    print(f"theta_1: {theta_1_deg}, theta_2:{theta_2_deg}")
+    print(f"Max range: {max_range}, Max height: {max_height}")
+    theta_1 = calculate_required_pitch_angle((0.1-0.12), (1.5+0.34), (4.6-0.75), initial_velocity, g=9.81)
+    theta_1_deg = np.degrees(theta_1)
+    print(f"theta_1: {theta_1} radians, theta_1_deg: {theta_1_deg}degrees")
+
 if __name__ == '__main__':
     main()
