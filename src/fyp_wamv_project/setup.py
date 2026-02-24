@@ -28,7 +28,8 @@ setup(
             'HSV_filter = fyp_wamv_project.HSV_filter:main',
             'depth_map = fyp_wamv_project.depth_map:main',
             'shape_detection = fyp_wamv_project.shape_detection:main',
-            'template_matching = fyp_wamv_project.template_matching:main'
+            'template_matching = fyp_wamv_project.template_matching:main',
+            'ball_trajectory = fyp_wamv_project.ball_trajectory:main',
         ],
     },
 )
