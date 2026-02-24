@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PointStamped
 from collections import deque
+import numpy as np
 
 class BallLauncherController(Node):
     def __init__(self):
@@ -32,5 +33,5 @@ class BallLauncherController(Node):
             mean_x = np.mean(self.x_buffer)
             mean_y = np.mean(self.y_buffer)
             mean_z = np.mean(self.z_buffer)
-
-    
+        
+        
