@@ -58,13 +58,17 @@ class ColorEdgeDetector(BaseDetector):
         focal_length = calculate_focal_length(image_width_px , HFOV_rad) # in pixels
 
         # Triangulate centre of detected shapes to get Z values
+        targets = []
         for centre in shapes_centre:
             u, v = centre
             Z = triangulation(u, v, disparity, self.baseline, focal_length)
             # Using Z values, calculate X and Y and draw on frame
-            filtered_frame_2 = back_projection(Z, u, v, 640, 360, focal_length, focal_length, filtered_frame_2)
+            result = back_projection(Z, u, v, 640, 360, focal_length, focal_length, filtered_frame_2)
+            if result is not None:
+                X, Y, Z, filtered_frame_2 = result
+                targets.append([X,Y,Z])
 
         # Return disparity map and matched frames
-        return disparity, filtered_frame_2
+        return disparity, filtered_frame_2, targets
 
 
