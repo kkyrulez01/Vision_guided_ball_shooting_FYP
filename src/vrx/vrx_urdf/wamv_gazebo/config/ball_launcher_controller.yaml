@@ -13,4 +13,9 @@ wamv/pitch_controller:
   ros__parameters:
     joints:
       - wamv/ball_shooter_launcher_joint
+    gains:
+      p: 100.0
+      i: 10.0
+      d: 1.0
+      i_clamp: 0.01
     interface_name: position
