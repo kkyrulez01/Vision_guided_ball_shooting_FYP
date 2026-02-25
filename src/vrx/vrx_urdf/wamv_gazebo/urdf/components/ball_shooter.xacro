@@ -58,7 +58,8 @@
     <joint name="${namespace}/${name}_launcher_joint" type="revolute">
       <!-- Adjust pitch angle (Rotate up down)-->
       <axis xyz="0 1 0"/> 
-      <limit effort="1000.0" lower="${-pi/2}" upper="${pi/2}" velocity="0.5"/>
+      <limit effort="1000.0" lower="${-pi/2}" upper="${pi/2}" velocity="2.0"/>
+      <dynamics damping="0.7" friction="0.1"/>
       <origin xyz="-0.0204 0 0.107877" rpy="0 ${pitch} 0"/>
       <parent link="${namespace}/${name}_base_link"/>
       <child link="${namespace}/${name}_launcher_link"/>
