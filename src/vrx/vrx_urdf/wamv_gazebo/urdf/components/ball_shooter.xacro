@@ -50,7 +50,8 @@
     <joint name="${namespace}/${name}_base_joint" type="revolute">
       <!-- Adjust yaw angle (Rotate left right) -->
       <axis xyz="0 0 1"/>
-      <limit effort="1000.0" lower="${-pi/2}" upper="${pi/2}" velocity="3"/>
+      <limit effort="1000.0" lower="${-pi/2}" upper="${pi/2}" velocity="3.0"/>
+      <dynamics damping="0.7" friction="0.1"/>
       <origin xyz="${x} ${y} ${z}" rpy="0 0 ${yaw}"/>
       <parent link="${namespace}/base_link"/>
       <child link="${namespace}/${name}_base_link"/>
@@ -151,6 +152,12 @@
         <state_interface name="position"/>
       </joint>
 
+      <joint name="wamv/ball_shooter_base_joint">
+        <command_interface name="position"/>
+          <param name="min">-1.57</param>
+          <param name="max">1.57</param>
+        <state_interface name="position"/>
+      </joint>
     </ros2_control>
 
     <gazebo>
