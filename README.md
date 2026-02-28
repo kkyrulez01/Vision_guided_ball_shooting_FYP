@@ -17,6 +17,9 @@ The vision system features 2 approaches to this problem:
 
 The python scripts used for the main logic of the vision system can be found in the ``fyp_wamv_project`` package.
 
+By default, the ball shooter base joint and launcher joints are fixed. To make the ball shooter controllable, controllers for those joints were created using ``ros_control``.
+The ball shooter base joint is now able to rotate about its z-axis (yaw) and the ball launcher can now rotate about its y-axis (pitch).
+
 ## 🌟 Requirements
 
 - Gazebo Harmonic
