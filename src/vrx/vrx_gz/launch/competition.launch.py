@@ -81,10 +81,18 @@ def launch(context, *args, **kwargs):
         "-p", "robot_description_topic:=/wamv/robot_description"] # Force it to the right topic,
     )
 
+    base_link_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["base_link_controller", "-c", "wamv/controller_manager",
+        "--ros-args", 
+        "-p", "robot_description_topic:=/wamv/robot_description"] # Force it to the right topic,
+    )
+
     launch_processes.append(
         TimerAction(
-            period=10.0,
-            actions=[jsb_spawner, pitch_spawner],
+            period=5.0,
+            actions=[jsb_spawner, pitch_spawner, base_link_spawner],
         )
     )
 
