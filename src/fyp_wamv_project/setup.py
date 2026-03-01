@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'binocular_vision = fyp_wamv_project.binocular_vision_node:main',
+            'ball_launcher = fyp_wamv_project.ball_launcher_controller_node:main',
             'HSV_filter = fyp_wamv_project.HSV_filter:main',
             'depth_map = fyp_wamv_project.depth_map:main',
             'shape_detection = fyp_wamv_project.shape_detection:main',
