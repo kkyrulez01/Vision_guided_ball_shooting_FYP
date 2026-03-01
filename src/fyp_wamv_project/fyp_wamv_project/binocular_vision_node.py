@@ -60,7 +60,6 @@ class BinocularVision(Node):
 
         msg = PoseArray()
         for target in targets:
-            
             if target[0] is not None and target[1] is not None and target[2] is not None:
                 try:
                     p = Pose()
