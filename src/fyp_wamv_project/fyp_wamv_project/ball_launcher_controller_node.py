@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy
-from std_msgs.msg import Float64MultiArray, Float64
+from std_msgs.msg import Float64MultiArray, Float64, Bool
 from geometry_msgs.msg import PoseArray
 from collections import deque
 import numpy as np
@@ -36,11 +36,13 @@ class BallLauncherController(Node):
         self.ball_shooter_base_publisher = self.create_publisher(Float64MultiArray, '/wamv/base_link_controller/commands', qos_profile=latching_qos)
         # Create publisher to ball shooter link
         self.ball_shooter_link_publisher = self.create_publisher(Float64MultiArray, '/wamv/pitch_controller/commands', qos_profile=latching_qos)
+        # Create publisher to shoot ball
+        self.ball_shooter_publisher = self.create_publisher(Bool, "/wamv/shooters/ball_shooter/fire", qos_profile=latching_qos)
 
         self.current_state = "IDLE" # To ensure we only fire once per targets detection
         # Callback 2 is triggered 10 times a second
         self.shooter_timer = self.create_timer(0.1, self.trigger_ball_shooter_callback)
-        self.has_fired = False
+        self.shoot_state = False
 
     def target_position_callback(self, msg):
         # If the ball shooter is already aiming or firing , ignore new camera frames until it finishes
@@ -83,11 +85,11 @@ class BallLauncherController(Node):
             self.get_logger().info(f"Required yaw angle for target 1: {req_yaw_angle_1}")
             
             # Append to yaw_angles list
-            self.yaw_angles.append(req_yaw_angle_0)
-            self.yaw_angles.append(req_yaw_angle_1)
+            self.yaw_angles.append(-req_yaw_angle_0)
+            self.yaw_angles.append(-req_yaw_angle_1)
 
             # Calculate initial velocity of ball
-            initial_velocity = calculate_initial_velocity(shot_force=70, max_step_size=0.004, ball_mass=0.04)
+            initial_velocity = calculate_initial_velocity(shot_force=100, max_step_size=0.004, ball_mass=0.04)
             self.get_logger().info(f"Initial velocity: {initial_velocity}")
 
             # Calculate required pitch angle for ball shooter to hit each target
@@ -131,7 +133,12 @@ class BallLauncherController(Node):
         
         elif self.current_state == "READY_TO_FIRE": # READY_TO_FIRE state, trigger the ball shooter to fire
             # Fire ball shooter here
-            self.get_logger().info("Triggering ball shooter to fire!")
+            self.shoot_state = True
+            fire_msg = Bool()
+            fire_msg.data = self.shoot_state
+            self.ball_shooter_publisher.publish(fire_msg)
+            self.get_logger().info("Triggered ball shooter to fire!") 
+            self.shoot_state = not self.shoot_state # Toggle for next time
             self.yaw_angles.pop(0) 
             self.pitch_angles.pop(0)
             self.current_state = "AIMING" # Next target
