@@ -35,24 +35,27 @@ def triangulation(u, v, disparity_map, baseline, focal_length):
     disparity = disparity_map[v, u] # Dont need to divide by 16 since already done in depth map computation
     if disparity > 0:
         Z = (f * B) / disparity # Depth of the point in meters
-
         return Z
 
-def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame):
+def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame, alpha=np.radians(-15)):
     if Z is not None and Z > 0:
-    # Calculate X and Y using Z value
+        # Calculate X and Y using Z value
         X = ((u - c_x) * Z / f_x)
-        Y = ((v- c_y) * Z / f_y)
+        Y = ((v - c_y) * Z / f_y)
+
+        # Camera is tilted at 15 degrees, need to account for that by rotating about X axis
+        actual_Z = Z * np.cos(alpha) - Y * np.sin(alpha)
+        actual_Y = Z * np.sin(alpha) + Y * np.cos(alpha)
 
         # Draw a circle in the centre of bounding boxes
         cv2.circle(frame, (u, v), 5, (255,0,0), -1)
         # Label the Z,X,Y value of centre point
-        size, _ = cv2.getTextSize(f"Z: {Z:.2f}m,X: {X:.2f}m,Y: {Y:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
+        size, _ = cv2.getTextSize(f"Z: {actual_Z:.2f}m,X: {X:.2f}m,Y: {actual_Y:.2f}m", cv2.FONT_HERSHEY_SIMPLEX, 0.35, 1)
         text_w, text_h = size
-        cv2.putText(frame, f"Z: {Z:.2f}m,X: {X:.2f}m,Y: {Y:.2f}m",
+        cv2.putText(frame, f"Z: {actual_Z:.2f}m,X: {X:.2f}m,Y: {actual_Y:.2f}m",
                     (u - text_w // 2, v - text_h), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0,255,0), 1)
 
-        return X, Y, Z, frame
+        return X, actual_Y, actual_Z, frame
 
     else:
         return None, None, None, frame
