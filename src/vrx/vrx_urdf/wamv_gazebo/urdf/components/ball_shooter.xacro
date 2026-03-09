@@ -108,7 +108,7 @@
           <frame>wamv/ball_shooter_launcher_link</frame>
           <pose>0.14 0 0 0 0 0</pose>
         </projectile>
-        <shot_force>70</shot_force>
+        <shot_force>100</shot_force>
         <topic>${namespace}/${shooter_namespace}${name}/fire</topic>
       </plugin>
     </gazebo>
