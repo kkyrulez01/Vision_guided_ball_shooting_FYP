@@ -38,17 +38,26 @@ def detect_shape(frame):
             cv2.rectangle(contours_frame, (x,y), (x+w, y+h), (255,0,255), 2)
             shapes_centre.append((x+w//2, y+h//2)) # Append the centre of the shape
 
-
-    return contours_frame,shapes_centre
-
     # # Plot image
+    # plt.figure(figsize=(15,10))
     # plt.subplot(1,3,1)
     # plt.imshow(frame, cmap='gray') # Show original image
+    # plt.title('Before shape detection')
+    # plt.axis('off')
+
     # plt.subplot(1,3,2)
     # plt.imshow(edges, cmap='gray') # Show edges detected
+    # plt.title('After edge detection')
+    # plt.axis('off')
+
     # plt.subplot(1,3,3)
     # plt.imshow(contours_frame)
+    # plt.title('Bounding boxes drawn')
+    # plt.axis('off')
+
     # plt.show()
+
+    return contours_frame,shapes_centre
 
 def main():
     frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
