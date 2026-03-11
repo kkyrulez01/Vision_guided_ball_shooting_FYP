@@ -21,7 +21,7 @@ def add_HSV_filter(frame, lower, upper):
     # cv2.imshow("Filtered frame", filtered_frame_BGR)
     # cv2.waitKey(0)
 
-    return filtered_frame_BGR
+    return mask, filtered_frame_BGR
     
 def main():
     # Load example image
