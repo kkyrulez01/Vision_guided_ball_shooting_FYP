@@ -66,20 +66,21 @@ class DepthMap:
 
 # Example usage:
 def main():
-    left_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
-    right_frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
-    left_frame = cv2.cvtColor(left_frame, cv2.COLOR_BGR2GRAY)
-    right_frame = cv2.cvtColor(right_frame, cv2.COLOR_BGR2GRAY)
+    left_camera = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
+    right_camera = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
+    left_camera = cv2.cvtColor(left_camera, cv2.COLOR_BGR2GRAY)
+    right_camera = cv2.cvtColor(right_camera, cv2.COLOR_BGR2GRAY)
 
-    # # Without filter
+    # Without filter
     # stereo = cv2.StereoBM_create(numDisparities=16 * 8, blockSize=7)
     # disparity = stereo.compute(left_frame, right_frame).astype(np.float32) / 16.0
     # plt.imshow(disparity, 'gray')
     # plt.show()
-    # depth_map = DepthMap(left_frame,right_frame)
+    # depth_map = DepthMap(left_camera,right_camera)
     
     # depth_map.compute_depth_mapBM()
-    # # depth_map.compute_depth_mapSGBM()
+
+    # depth_map.compute_depth_mapSGBM()
     # depth_map.plot_images()
 
     # Test WLS filter
@@ -102,11 +103,19 @@ def main():
     wls_filter.setLambda(800) # Smoothing strength
     wls_filter.setSigmaColor(1.2) # How much to respect RGB edges
     # Compute disparity maps
-    disp_l = left_matcher.compute(left_frame, right_frame).astype(np.float32) / 16.0
-    disp_r = right_matcher.compute(right_frame, left_frame).astype(np.float32) / 16.0
-    filtered_disp = wls_filter.filter(disp_l, left_frame, disparity_map_right=disp_r)
+    disp_l = left_matcher.compute(left_camera, right_camera).astype(np.float32) / 16.0
+    disp_r = right_matcher.compute(right_camera, left_camera).astype(np.float32) / 16.0
+    filtered_disp = wls_filter.filter(disp_l, left_camera, disparity_map_right=disp_r)
+    filtered_disp = filtered_disp[:,16*8:-1]
+
+    # Plot outputs
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize = (15,10))
     
-    plt.imshow(filtered_disp, 'gray')
+    ax1.imshow(left_camera, 'gray')
+    ax1.set_title("Left camera image")
+    ax2.imshow(filtered_disp, 'gray')
+    ax2.set_title("Disparity map")
+    ax1.axis('off'), ax2.axis('off')
     plt.show()
 
 if __name__ == "__main__":
