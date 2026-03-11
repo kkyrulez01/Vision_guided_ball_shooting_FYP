@@ -25,36 +25,37 @@ def multi_scale_template_matching(frame, templates: list):
     x_end = frame.shape[1]
     search_area = frame[y_start:y_end, x_start:x_end]
 
+    all_rects = []
+    all_confidences = []
+    rects_centres = []
+
     # Templates will contain path of all template images
     for template in templates:
         template_img = cv2.imread(template)
         scaled_template_list = scale_template(template_img) # List of scaled template images
         template_name = Path(template).stem
-        rects = [] # Contains x,y,w,h of bounding boxes
-        rects_indices = []
-        confidences = []
         for scaled_template in scaled_template_list:
             result = cv2.matchTemplate(search_area, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
             threshold = 0.75 # Adjust this
             loc = np.where(result >= threshold)
             h,w = scaled_template.shape[:-1]
             for pt in zip(*loc[::-1]):
-                rects.append([int(pt[0]), int(pt[1]), int(w), int(h)])
-                confidences.append(float(result[pt[1], pt[0]]))
+                all_rects.append([int(pt[0]), int(pt[1] + y_start), int(w), int(h)])
+                all_confidences.append(float(result[pt[1], pt[0]]))
             
-            # Apply NMS to get box with highest score
-            indices = apply_NMS(rects, confidences)
+    # Apply Global NMS to get box with highest score
+    indices = apply_NMS(all_rects, all_confidences)
             
-            for i in indices:
-                x,y,w,h = rects[i]
-                cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 4)
-                cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
-                rects_indices.append(rects[i])
-            # Get template name from path
-            # template_name = Path(template).stem
-            # templates_locations[template_name] = (top_left, bottom_right)
+    for i in indices:
+        x,y,w,h = all_rects[i]
+        cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 4)
+        cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+        rects_centres.append((x+w//2, y+h//2))
+        # Get template name from path
+        # template_name = Path(template).stem
+        # templates_locations[template_name] = (top_left, bottom_right)
 
-    return frame, rects_indices, scaled_template_list
+    return frame, rects_centres
 
 def get_template_centre(templates_locations: dict):
     # Dictionary to store centre coordinates of matched templates
@@ -81,7 +82,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.1, 3, 0.2).tolist() # List of scaling ratios
+    scales = np.arange(0.25, 3, 0.25).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
@@ -111,6 +112,7 @@ def apply_NMS(boxes, scores, threshold_conf=0.75, threshold_iou=0.5):
 
     # Indices will contain the ID of the boxes to keep
     indices = cv2.dnn.NMSBoxes(boxes, scores, threshold_conf, threshold_iou)
+    indices = np.array(indices).flatten().tolist()
 
     return indices
 
@@ -136,12 +138,13 @@ def stamp_template(ax, template, x, y, scale, alpha=0.8):
 
 def main():
     frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
+    template_frame = frame.copy()
 
-    # Templates
-    templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template.png',]
-    template_img = cv2.imread(templates[0])
+    # List of templates
+    templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_1.png',
+                'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_2.png',
+                'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_3.png',]
                 
-
     # # Test scale_template
     # template_1 = cv2.imread(templates[0])
     # scaled_template_list = scale_template(template_1)
@@ -163,32 +166,32 @@ def main():
     # plt.show()
 
     # Test multi_scale_template_matching
-    frame, rects_indices, scaled_template_list = multi_scale_template_matching(frame, templates)
+    template_frame, rects_centres = multi_scale_template_matching(template_frame, templates)
+    print(rects_centres)
 
-    # Copy this frame to stack scaled templates on the centre of bounding boxes
-    frame_stacking = frame.copy()
+    # # Copy this frame to stack scaled templates on the centre of bounding boxes
+    # frame_stacking = frame.copy()
 
     fig, ax = plt.subplots(nrows=1,ncols=2,figsize=(12,8))
     ax[0].imshow(frame) # Original image
-    ax[1].imshow(frame) # Stacked templates image
-    for i in range(len(rects_indices)):
-        x,y,w,h = rects_indices[i]
-        for j in range(len(scaled_template_list)):
-            left, right, bottom, top = x, x + scaled_template_list[j].shape[0], y, y + scaled_template_list[j].shape[1] 
-            ax[1].imshow(scaled_template_list[0], extent=[left,right,bottom,top], alpha=0.1)
+    ax[1].imshow(template_frame) # Image with template matching done
 
-    ax[0].set_xlim(0,900)
-    ax[0].set_ylim(720,0)
-    ax[1].set_xlim(0,900)
-    ax[1].set_ylim(720,0)
+    # ax[1].imshow(frame) # Stacked templates image
+    # # For stacking images
+    # for i in range(len(rects_indices)):
+    #     x,y,w,h = rects_indices[i]
+    #     for j in range(len(scaled_template_list)):
+    #         left, right, bottom, top = x, x + scaled_template_list[j].shape[0], y, y + scaled_template_list[j].shape[1] 
+    #         ax[1].imshow(scaled_template_list[0], extent=[left,right,bottom,top], alpha=0.1)
+    # ax[0].set_xlim(0,900)
+    # ax[0].set_ylim(720,0)
+    # ax[1].set_xlim(0,900)
+    # ax[1].set_ylim(720,0)
 
-
-    plt.axis('off')
+    ax[0].axis('off'), ax[1].axis('off')
     plt.show()
 
-
-    
-if "__name__" == "__main__":
+if __name__ == "__main__":
     main()
 
 
