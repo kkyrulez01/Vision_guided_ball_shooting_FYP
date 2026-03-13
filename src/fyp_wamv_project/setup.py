@@ -32,6 +32,7 @@ setup(
             'template_matching = fyp_wamv_project.template_matching:main',
             'ball_trajectory = fyp_wamv_project.ball_trajectory:main',
             'image_sampling = fyp_wamv_project.image_sampling:main',
+            'extract_features = fyp_wamv_project.extract_hybrid_features:main',
         ],
     },
 )
