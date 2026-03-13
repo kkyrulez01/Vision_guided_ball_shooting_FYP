@@ -38,7 +38,7 @@ def slice_image_to_grid(image, d_v, d_h):
 
             # If image size doesn't divide perfectly
             y_end = (row + 1) * sub_patch_h if row < d_v - 1 else img_h
-            x_end = (column + 1) * sub_patch_w if column < d_v - 1 else img_w
+            x_end = (column + 1) * sub_patch_w if column < d_h - 1 else img_w
 
             patch = image[y_start:y_end, x_start:x_end]
             patches.append(patch)
