@@ -21,6 +21,7 @@ Thumbs.db
 src/fyp_wamv_project/fyp_wamv_project/darren.py
 src/vrx/vrx_gz/worlds/darren_world.sdf
 src/vrx/vrx_gz/launch/competition.launch_2.py
+src/vrx/vrx_gz/worlds/replenishment_task.sdf
 
 # Ignore RCE NN files
 src/fyp_wamv_project/fyp_wamv_project/RCE_NN/
