@@ -16,3 +16,11 @@ __pycache__/
 # Ignore OS generated files
 .DS_Store
 Thumbs.db
+
+# Ignore files for Darren
+src/fyp_wamv_project/fyp_wamv_project/darren.py
+src/vrx/vrx_gz/worlds/darren_world.sdf
+src/vrx/vrx_gz/launch/competition.launch_2.py
+
+# Ignore RCE NN files
+src/fyp_wamv_project/fyp_wamv_project/RCE_NN/
