@@ -137,13 +137,16 @@ def stamp_template(ax, template, x, y, scale, alpha=0.8):
 
 
 def main():
-    frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
+    # Example image
+    frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/example_image_1.png')
     template_frame = frame.copy()
 
-    # List of templates
-    templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_1.png',
-                'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_2.png',
-                'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_3.png',]
+    # Path to templates
+    templates_dir = Path('src/fyp_wamv_project/fyp_wamv_project/templates')
+    small_target_template_dir = templates_dir / 'small_target'
+    small_target_templates = []
+    for item in small_target_template_dir.iterdir():
+        small_target_templates.append(str(item))
                 
     # # Test scale_template
     # template_1 = cv2.imread(templates[0])
@@ -166,7 +169,7 @@ def main():
     # plt.show()
 
     # Test multi_scale_template_matching
-    template_frame, rects_centres = multi_scale_template_matching(template_frame, templates)
+    template_frame, rects_centres = multi_scale_template_matching(template_frame, small_target_templates)
     print(rects_centres)
 
     # # Copy this frame to stack scaled templates on the centre of bounding boxes
