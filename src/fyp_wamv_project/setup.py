@@ -33,6 +33,9 @@ setup(
             'ball_trajectory = fyp_wamv_project.ball_trajectory:main',
             'image_sampling = fyp_wamv_project.image_sampling:main',
             'extract_features = fyp_wamv_project.extract_hybrid_features:main',
+            'train_RCE = fyp_wamv_project.train_RCE:main',
+            'RCE_NN = fyp_wamv_project.RCE_neural_network:main',
+            'darren = fyp_wamv_project.darren:main',
         ],
     },
 )
