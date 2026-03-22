@@ -19,15 +19,10 @@ def multi_scale_template_matching(frame, templates: list):
     # Dictionary to store coordinates of matched templates
     templates_locations = {}
 
-    # Only search the top 2/3 of the image
-    y_start, x_start = 0, 0
-    y_end = int((2/3) * frame.shape[0])
-    x_end = frame.shape[1]
-    search_area = frame[y_start:y_end, x_start:x_end]
-
     all_rects = []
     all_confidences = []
-    rects_centres = []
+    bounding_boxes = []
+    bounding_boxes_centres = []
 
     # Templates will contain path of all template images
     for template in templates:
@@ -35,12 +30,12 @@ def multi_scale_template_matching(frame, templates: list):
         scaled_template_list = scale_template(template_img) # List of scaled template images
         template_name = Path(template).stem
         for scaled_template in scaled_template_list:
-            result = cv2.matchTemplate(search_area, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
+            result = cv2.matchTemplate(frame, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
             threshold = 0.75 # Adjust this
             loc = np.where(result >= threshold)
             h,w = scaled_template.shape[:-1]
             for pt in zip(*loc[::-1]):
-                all_rects.append([int(pt[0]), int(pt[1] + y_start), int(w), int(h)])
+                all_rects.append([int(pt[0]), int(pt[1]), int(w), int(h)])
                 all_confidences.append(float(result[pt[1], pt[0]]))
             
     # Apply Global NMS to get box with highest score
@@ -48,14 +43,13 @@ def multi_scale_template_matching(frame, templates: list):
             
     for i in indices:
         x,y,w,h = all_rects[i]
-        cv2.rectangle(frame, (x,y), (x + w, y + h), (0,255,0), 4)
-        cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
-        rects_centres.append((x+w//2, y+h//2))
-        # Get template name from path
-        # template_name = Path(template).stem
-        # templates_locations[template_name] = (top_left, bottom_right)
+        cv2.rectangle(frame, (x,y), (x + w, y + h), (255,0,255), 4)
+        cv2.putText(frame, 'Target', (x-10,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,0,255), 2)
+        
+        # Store bounding boxes (x,y,w,h)
+        bounding_boxes.append([x,y,w,h])
 
-    return frame, rects_centres
+    return frame, bounding_boxes
 
 def get_template_centre(templates_locations: dict):
     # Dictionary to store centre coordinates of matched templates
@@ -82,7 +76,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.25, 3, 0.25).tolist() # List of scaling ratios
+    scales = np.arange(0.25, 2.25, 0.5).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
@@ -135,12 +129,69 @@ def stamp_template(ax, template, x, y, scale, alpha=0.8):
     ab = AnnotationBbox(imagebox, (cx, cy), frameon=False)
     ax.add_artist(ab)
 
+def detect_placard_region(frame):
+    """
+    Run canny edge detection on camera feed to detect location of placard within the image. Returns the 
+    pixel coordinates of the 4 corners of placard.
+    """
+    gray_frame = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2GRAY)
+    
+    # Apply Gaussian Blur to reduce noise
+    blur = cv2.GaussianBlur(gray_frame, (5,5), 0)
+    
+    # Apply Canny Edge detector
+    edges = cv2.Canny(blur, threshold1=10, threshold2=100)
+    
+    # Apply Hough Line Transform to detect straight edges of the placard
+    cdstP = cv2.cvtColor(edges.copy(), cv2.COLOR_GRAY2BGR)
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 100, None, 50, 10)
+    vertical_lines = []
+    angle_tolerance = 20 # 20 degrees angle tolerance
+
+    if lines is not None:
+        for i in range(0, len(lines)):
+            # Get length of lines
+            x1, y1, x2, y2 = lines[i][0]
+            length = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+            
+            # Get angle of lines, we only want vertical lines
+            angle = abs(np.arctan2(y2-y1, x2-x1) * 180 / np.pi)
+
+            # Only append vertical lines
+            if 90 - angle_tolerance <= angle <= 90 + angle_tolerance:
+                # Append the line with its length
+                vertical_lines.append(([x1, y1, x2, y2], length))
+
+    for line in vertical_lines:
+        # Draw vertical lines in green
+        cv2.line(cdstP, (line[0][0], line[0][1]), (line[0][2], line[0][3]), (0,255,0), 2, cv2.LINE_AA)
+
+    # Return min x, max x
+    min_x_line = min(vertical_lines, key=lambda x: x[0][0])
+    max_x_line = max(vertical_lines, key=lambda x: x[0][2])
+    min_x = min_x_line[0][0]
+    max_x = max_x_line[0][2]
+
+    # Return x,y,w,h of region
+    h = frame.shape[0]
+    width = frame.shape[1]
+
+    if min_x - 50 < 0:
+        x, y, w, h = 0, 0, max_x + 50, h
+
+    elif max_x + 50 > width:
+        x, y, w, h = min_x - 50, 0, width, h
+
+    else:
+        x, y, w, h = min_x - 50, 0, max_x + 50, h
+
+    return (x,y,w,h)
 
 def main():
     # Example image
     frame = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/example_image_1.png')
-    template_frame = frame.copy()
-
+    placard_ROI = detect_placard_region(frame.copy())
+    
     # Path to templates
     templates_dir = Path('src/fyp_wamv_project/fyp_wamv_project/templates')
     small_target_template_dir = templates_dir / 'small_target'
@@ -169,7 +220,7 @@ def main():
     # plt.show()
 
     # Test multi_scale_template_matching
-    template_frame, rects_centres = multi_scale_template_matching(template_frame, small_target_templates)
+    template_frame, rects_centres = multi_scale_template_matching(placard_ROI, small_target_templates)
     print(rects_centres)
 
     # # Copy this frame to stack scaled templates on the centre of bounding boxes
@@ -194,11 +245,37 @@ def main():
     ax[0].axis('off'), ax[1].axis('off')
     plt.show()
 
+def test_detect_placard_region():
+    # Example images
+    frame_1 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/example_image_1.png')
+    frame_2 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
+    frame_3 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
+
+    region_1, cdst_1 = detect_placard_region(frame_1)
+    region_2, cdst_2 = detect_placard_region(frame_2)
+    region_3, cdst_3 = detect_placard_region(frame_3)
+
+    # # Get contours
+    # contours, hierachy = cv2.findContours(edges, cv2.RETR_EXTERNAL, 
+    #                                     cv2.CHAIN_APPROX_SIMPLE)
+
+    # # Draw contours
+    # cv2.drawContours(debug_frame, contours, -1, (0,0,255), 1)
+
+    # Show in a window
+    # Image 1
+    cv2.imshow('Placard region 1', region_1)
+    cv2.imshow('Lines 1', cdst_1)
+    # Image 2
+    cv2.imshow('Placard region 2', region_2)
+    cv2.imshow('Lines 2', cdst_2)
+    # Image 3
+    cv2.imshow('Placard region 3', region_3)
+    cv2.imshow('Lines 3', cdst_3)
+
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 if __name__ == "__main__":
     main()
-
-
-
-
-
-        
+    #test_detect_placard_region()
