@@ -48,32 +48,39 @@ class BinocularVision(Node):
         # cv2.waitKey(1)
 
         # Template matching
-        templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_1.png',
-                    'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_2.png',
-                    'src/fyp_wamv_project/fyp_wamv_project/templates/small_target_template_3.png']
+        templates = ['src/fyp_wamv_project/fyp_wamv_project/templates/small_target/small_target_1.png',
+                    'src/fyp_wamv_project/fyp_wamv_project/templates/small_target/small_target_2.png',
+                    'src/fyp_wamv_project/fyp_wamv_project/templates/small_target/small_target_3.png']
                     
         # Focal length and baseline in meters
         baseline = 0.2 # in meters
         
-        processor1 = TemplateMatcher(self.left_camera_image, self.right_camera_image, templates)
-        processor2 = ColorEdgeDetector(self.left_camera_image, self.right_camera_image, baseline)
-        
         # Choose approach depending on arguments, default mode is 2
-        # Template matching
+        # (1) Template matching
         if self.mode == 1:
-            disparity_1, filtered_frame_1 = processor1.process_frames()
+            processor1 = TemplateMatcher(self.left_camera_image, self.right_camera_image, templates, baseline)
+            filtered_frame_1, targets = processor1.process_frames()
 
             cv2.imshow("Template matching", filtered_frame_1)
-            cv2.waitKey(1)
 
-        # Color edge detection
-        else:
+        # (2) Color edge detection
+        elif self.mode == 2:
+            processor2 = ColorEdgeDetector(self.left_camera_image, self.right_camera_image, baseline)
             disparity_2, filtered_frame_2, targets = processor2.process_frames()
 
             # Display the processed frame
             cv2.imshow("Color Edge detection", filtered_frame_2)
-            cv2.waitKey(1)
 
+        # (3) Only display left and right frames
+        else:
+            fx, fy = 0.5, 0.5
+            # Resize images by 0.5 before stacking
+            resized_left_camera_image = cv2.resize(self.left_camera_image, None, fx=fx, fy=fy, interpolation=cv2.INTER_LINEAR)
+            resized_right_camera_image = cv2.resize(self.right_camera_image, None, fx=fx, fy=fy, interpolation=cv2.INTER_LINEAR)
+            combined_frame = cv2.hconcat([resized_left_camera_image, resized_right_camera_image])
+            cv2.imshow("Combined camera feed", combined_frame)
+
+        cv2.waitKey(1)
         # # Display the processed_frame
         # cv2.imshow("Left_camera_feed", filtered_left_frame)
         # # cv2.imshow("Right_camera_feed", right_frame_matched)
@@ -81,24 +88,25 @@ class BinocularVision(Node):
         # cv2.imshow("Filtered Left frame", filtered_left_frame)
         # cv2.imshow("Template matching", frame_1)
         
-        msg = PoseArray()
-        for target in targets:
-            if target[0] is not None and target[1] is not None and target[2] is not None:
-                try:
-                    p = Pose()
-                    p.position.x = float(target[0])
-                    p.position.y = float(target[1])
-                    p.position.z = float(target[2])
-                    msg.poses.append(p)
-                except (TypeError, ValueError) as e:
-                    self.get_logger().error(f"Conversion failed: {e}")
+        if self.mode == 1 or self.mode == 2:
+            msg = PoseArray()
+            for target in targets:
+                if target[0] is not None and target[1] is not None and target[2] is not None:
+                    try:
+                        p = Pose()
+                        p.position.x = float(target[0])
+                        p.position.y = float(target[1])
+                        p.position.z = float(target[2])
+                        msg.poses.append(p)
+                    except (TypeError, ValueError) as e:
+                        self.get_logger().error(f"Conversion failed: {e}")
 
-            else:
-                self.get_logger().info("No target detected, skipping publishing")
+                else:
+                    self.get_logger().info("No target detected, skipping publishing")
+            
+            # Publish the message
+            self.targets_publisher.publish(msg)
         
-        # Publish the message
-        self.targets_publisher.publish(msg)
-
 def main(args=None):
     # Create a parser to allow user to choose which method to use
     # 1: Template matching 2:  Color Edge detection
