@@ -59,7 +59,20 @@ def back_projection(Z, u, v, c_x, c_y, f_x, f_y, frame, alpha=np.radians(-15)):
 
     else:
         return None, None, None, frame
-    
+
+def back_projection_no_drawing(Z, u, v ,c_x, c_y, f_x, f_y, alpha=np.radians(-15)):
+    if Z is not None and Z > 0:
+        # Calculate X and Y using Z value
+        X = ((u - c_x) * Z / f_x)
+        Y = ((v - c_y) * Z / f_y)
+
+        # Camera is tilted at 15 degrees, need to account for that by rotating about X axis
+        actual_Z = Z * np.cos(alpha) - Y * np.sin(alpha)
+        actual_Y = Z * np.sin(alpha) + Y * np.cos(alpha)
+
+        return X, actual_Y, actual_Z
+    else:
+        return None, None, None
         
     
 
