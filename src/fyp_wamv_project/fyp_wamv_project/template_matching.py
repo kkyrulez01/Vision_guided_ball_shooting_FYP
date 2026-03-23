@@ -162,6 +162,9 @@ def detect_placard_region(frame):
                 # Append the line with its length
                 vertical_lines.append(([x1, y1, x2, y2], length))
 
+    if not vertical_lines:
+        return None
+        
     for line in vertical_lines:
         # Draw vertical lines in green
         cv2.line(cdstP, (line[0][0], line[0][1]), (line[0][2], line[0][3]), (0,255,0), 2, cv2.LINE_AA)
@@ -174,18 +177,18 @@ def detect_placard_region(frame):
 
     # Return x,y,w,h of region
     h = frame.shape[0]
-    width = frame.shape[1]
+    w = frame.shape[1]
 
-    if min_x - 50 < 0:
-        x, y, w, h = 0, 0, max_x + 50, h
+    # Add padding and num_disparities for right region
+    block_padding = 50
+    num_disparities = 64
 
-    elif max_x + 50 > width:
-        x, y, w, h = min_x - 50, 0, width, h
+    x_1 = max(0, min_x - num_disparities - block_padding)
+    y_1 = 0
+    x_2 = min(w, max_x + block_padding)
+    y_2 = h
 
-    else:
-        x, y, w, h = min_x - 50, 0, max_x + 50, h
-
-    return (x,y,w,h)
+    return x_1, y_1, x_2, y_2
 
 def main():
     # Example image
