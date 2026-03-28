@@ -87,6 +87,7 @@ class TemplateMatcher(BaseDetector):
 
             return frame_1, targets
 
+
 class ColorEdgeDetector(BaseDetector):
     def __init__(self, left_frame, right_frame, baseline):
         super().__init__(left_frame, right_frame)
