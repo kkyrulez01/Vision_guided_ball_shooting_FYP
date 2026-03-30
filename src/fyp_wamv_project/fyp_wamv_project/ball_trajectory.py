@@ -51,7 +51,7 @@ def calculate_required_pitch_angle(req_y, req_z, initial_velocity, g=9.81):
         # Use kinematics to calculate the required pitch angle for ball shooter
         d = req_z
         h = req_y
-        u = initial_velocity # To factor for sim-to-real gap
+        u = initial_velocity
         
         coeff = [(g*d**2), (-2*d*u**2), (2*h*u**2 + g*d**2)]
         possible_theta = np.arctan(np.roots(coeff))
