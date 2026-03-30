@@ -71,6 +71,7 @@ def back_projection_no_drawing(Z, u, v ,c_x, c_y, f_x, f_y, alpha=np.radians(-15
         actual_Y = Z * np.sin(alpha) + Y * np.cos(alpha)
 
         return X, actual_Y, actual_Z
+        
     else:
         return None, None, None
         
