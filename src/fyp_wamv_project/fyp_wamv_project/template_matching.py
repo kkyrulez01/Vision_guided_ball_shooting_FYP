@@ -30,13 +30,16 @@ def multi_scale_template_matching(frame, templates: list):
         scaled_template_list = scale_template(template_img) # List of scaled template images
         template_name = Path(template).stem
         for scaled_template in scaled_template_list:
-            result = cv2.matchTemplate(frame, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
-            threshold = 0.75 # Adjust this
-            loc = np.where(result >= threshold)
-            h,w = scaled_template.shape[:-1]
-            for pt in zip(*loc[::-1]):
-                all_rects.append([int(pt[0]), int(pt[1]), int(w), int(h)])
-                all_confidences.append(float(result[pt[1], pt[0]]))
+            if scaled_template.shape[0] > frame.shape[0] or scaled_template.shape[1] > frame.shape[1]:
+                break # Stop scaling up if template is larger than frame
+            else:
+                result = cv2.matchTemplate(frame, scaled_template, cv2.TM_CCOEFF_NORMED) # Returns a result matrix with match metric scores of each pixel
+                threshold = 0.75 # Adjust this
+                loc = np.where(result >= threshold)
+                h,w = scaled_template.shape[:-1]
+                for pt in zip(*loc[::-1]):
+                    all_rects.append([int(pt[0]), int(pt[1]), int(w), int(h)])
+                    all_confidences.append(float(result[pt[1], pt[0]]))
             
     # Apply Global NMS to get box with highest score
     indices = apply_NMS(all_rects, all_confidences)
@@ -76,7 +79,7 @@ def scale_template(template):
     original_height = template.shape[0]
     original_width = template.shape[1]
     
-    scales = np.arange(0.25, 2.25, 0.5).tolist() # List of scaling ratios
+    scales = np.linspace(0.25, 2.75, 6).tolist() # List of scaling ratios
     scaled_template_list = []
     for i in scales:
         #  Resize template image
@@ -87,7 +90,7 @@ def scale_template(template):
     
     return scaled_template_list
 
-def apply_NMS(boxes, scores, threshold_conf=0.75, threshold_iou=0.5):
+def apply_NMS(boxes, scores, threshold_conf=0.8, threshold_iou=0.5):
     """
     Performs Non-Maximum Suppression to filter out overlapping bounding boxes, keeping only the one
     with the highest confidence score.
@@ -188,7 +191,7 @@ def detect_placard_region(frame):
     x_2 = min(w, max_x + block_padding)
     y_2 = h
 
-    return x_1, y_1, x_2, y_2
+    return x_1, y_1, x_2, y_2, cdstP
 
 def main():
     # Example image
@@ -251,13 +254,17 @@ def main():
 def test_detect_placard_region():
     # Example images
     frame_1 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/example_image_1.png')
+    frame_1_resized = cv2.resize(frame_1, (1280,720))
     frame_2 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/left_camera_feed.png')
     frame_3 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/example_images/right_camera_feed.png')
 
-    region_1, cdst_1 = detect_placard_region(frame_1)
-    region_2, cdst_2 = detect_placard_region(frame_2)
-    region_3, cdst_3 = detect_placard_region(frame_3)
+    region_1_x_1, region_1_y_1, region_1_x_2, region_1_y_2, cdst_1 = detect_placard_region(frame_1_resized)
+    region_2_x_1, region_2_y_1, region_2_x_2, region_2_y_2, cdst_2 = detect_placard_region(frame_2)
+    region_3_x_1, region_3_y_1, region_3_x_2, region_3_y_2, cdst_3 = detect_placard_region(frame_3)
 
+    frame_1_resized_RGB = cv2.cvtColor(frame_1_resized, cv2.COLOR_BGR2RGB)
+    frame_2_RGB = cv2.cvtColor(frame_2, cv2.COLOR_BGR2RGB)
+    frame_3_RGB = cv2.cvtColor(frame_3, cv2.COLOR_BGR2RGB)
     # # Get contours
     # contours, hierachy = cv2.findContours(edges, cv2.RETR_EXTERNAL, 
     #                                     cv2.CHAIN_APPROX_SIMPLE)
@@ -265,20 +272,77 @@ def test_detect_placard_region():
     # # Draw contours
     # cv2.drawContours(debug_frame, contours, -1, (0,0,255), 1)
 
-    # Show in a window
-    # Image 1
-    cv2.imshow('Placard region 1', region_1)
-    cv2.imshow('Lines 1', cdst_1)
-    # Image 2
-    cv2.imshow('Placard region 2', region_2)
-    cv2.imshow('Lines 2', cdst_2)
-    # Image 3
-    cv2.imshow('Placard region 3', region_3)
-    cv2.imshow('Lines 3', cdst_3)
+    # # Show in a window
+    # # Image 1
+    # cv2.imshow('Placard region 1', frame_1[region_1_y_1:region_1_y_2, region_1_x_1:region_1_x_2])
+    # cv2.imshow('Lines 1', cdst_1)
+    # # Image 2
+    # cv2.imshow('Placard region 2', frame_2[region_2_y_1:region_2_y_2, region_2_x_1:region_2_x_2])
+    # cv2.imshow('Lines 2', cdst_2)
+    # # Image 3
+    # cv2.imshow('Placard region 3', frame_3[region_3_y_1:region_3_y_2, region_3_x_1:region_3_x_2])
+    # cv2.imshow('Lines 3', cdst_3)
+
+    # Plot in matplotlib
+    fig, ax = plt.subplots(nrows=3, ncols=2, figsize=(12,18))
+    ax[0,0].imshow(frame_1_resized_RGB[region_1_y_1:region_1_y_2, region_1_x_1:region_1_x_2])
+    ax[0,0].set_title("Example cropped placard region (1)")
+
+    ax[0,1].imshow(cdst_1)
+    ax[0,1].set_title("Example detected lines (1)")
+    ax[1,0].imshow(frame_2_RGB[region_2_y_1:region_2_y_2, region_2_x_1:region_2_x_2])
+    ax[1,0].set_title("Example cropped placard region (2)")
+
+    ax[1,1].imshow(cdst_2)
+    ax[1,1].set_title("Example detected lines (2)")
+
+    ax[2,0].imshow(frame_3_RGB[region_3_y_1:region_3_y_2, region_3_x_1:region_3_x_2])
+    ax[2,0].set_title("Example cropped placard region (3)")
+
+    ax[2,1].imshow(cdst_3)
+    ax[2,1].set_title("Example detected lines (3)")
+
+    for ax in fig.axes:
+        ax.axis('off')
+
+    plt.show()
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+def view_scaled_templates():
+    # Example template
+    template_1 = cv2.imread('src/fyp_wamv_project/fyp_wamv_project/templates/small_target/small_target_1.png')
+    scaled_template_list = scale_template(template_1)
+    max_w = scaled_template_list[-1].shape[1]
+    max_h = scaled_template_list[-1].shape[0]
+
+    # Plot scaled template images
+    fig, ax = plt.subplots(nrows=3,ncols=3, figsize=(12,12))
+    for i, template in enumerate(scaled_template_list):
+        row = i // 3
+        col = i % 3
+        ax[row, col].set_xlim(0, max_w)
+        ax[row, col].set_ylim(max_h, 0)
+        ax[row, col].set_xticks([])
+        ax[row, col].set_yticks([])
+        ax[row, col].imshow(template)
+        ax[row, col].set_title(f'Scaled Template {i+1}, Scale: {np.linspace(0.25, 2.75, 6)[i]:.2f}x')
+
+    ax[2,1].imshow(template_1)
+    ax[2,1].set_title('Original Template')
+    ax[2,1].set_xlim(0, max_w)
+    ax[2,1].set_ylim(max_h, 0)
+    ax[2,1].set_xticks([])
+    ax[2,1].set_yticks([])
+
+    axes_flat = ax.flatten()
+    for i in range(len(scaled_template_list), len(axes_flat)):
+        if i != 7: # Keep the original template slot visible
+            axes_flat[i].set_visible(False)
+    plt.show()
+
 if __name__ == "__main__":
-    main()
+    #main()
     #test_detect_placard_region()
+    view_scaled_templates()
