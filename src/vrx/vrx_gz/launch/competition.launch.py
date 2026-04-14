@@ -49,8 +49,8 @@ def launch(context, *args, **kwargs):
     else:
       # default_position = [-532, 162, 0, 0, 0, 1]
       position_1 = [-482.286, 192.286, 0, 0, 0, 1]
-      position_darren = [-530, 160, 5, 0, 1, 0] # 5m above helipad
-      m = Model(robot_name, model_type, position_1) # This spawns the WAM-V right infront of the first placard
+      position_2 = [-482.8, 191.8, 0, 0, 0, 0.74] # Rotated
+      m = Model(robot_name, model_type, position_2) # This spawns the WAM-V right infront of the first placard
       if robot_urdf and robot_urdf != '':
           m.set_urdf(robot_urdf)
       models.append(m)
